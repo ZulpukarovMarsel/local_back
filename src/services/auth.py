@@ -106,6 +106,22 @@ class AuthService(BaseService):
             return JSONResponse(status_code=200, content={"message": "Пароль изменен успешно!"})
         raise HTTPException(status_code=400, detail="Старый пароль написан не правильно")
 
+    async def update_access_token(self, refresh_token: str):
+        try:
+            payload = self.verify_token(refresh_token)
+            user_id = payload.get("user_id")
+            if payload:
+                access_payload = {"user_id": user_id, "type": "access"}
+
+                access_token = self.create_token(access_payload, expires_delta=8640000)
+                data = {
+                    "access_token": access_token,
+                    "token_type": "access"
+                }
+                return JSONResponse(status_code=200, content=jsonable_encoder(data))
+        except JWTError as e:
+            raise HTTPException(status_code=401, detail=e)
+
 
 class OTPService(BaseService):
     def __init__(self, user_repo: UserRepository, otp_repo: OTPRepository):

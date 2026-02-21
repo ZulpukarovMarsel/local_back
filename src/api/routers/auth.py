@@ -87,7 +87,7 @@ async def profile(request: Request):
         raise HTTPException(status_code=401, detail="User is not authanticate")
     data = {
         "id": user.id,
-        "image": f'{str(request.base_url).rstrip("/")}{user.image}' if user.image else 'none',
+        "avatar": f'{str(request.base_url).rstrip("/")}{user.avatar}' if user.avatar else 'none',
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
@@ -142,19 +142,5 @@ async def profile_update(request: Request, auth_data: AuthProfileUpdateSchema = 
 
 
 @router.post("/token/refresh", response_model=AuthTokenRefreshResponseSchema)
-async def update_access_token(request: Request, auth_data: AuthTokenRefreshSchema):
-    user = request.state.user
-    auth_data = auth_data.dict()
-    try:
-        verify_token = AuthService().verify_token(auth_data['refresh_token'])
-        if verify_token:
-            access_payload = {"user_id": user.id, "type": "access"}
-
-            access_token = AuthService().create_token(access_payload, expires_delta=8640000)
-            data = {
-                "access_token": access_token,
-                "token_type": "access"
-            }
-            return JSONResponse(status_code=200, content=jsonable_encoder(data))
-    except JWTError as e:
-        raise HTTPException(status_code=401, detail=e)
+async def update_access_token(auth_data: AuthTokenRefreshSchema, auth_service: AuthService = Depends(get_auth_service)):
+    return await auth_service.update_access_token(auth_data.refresh_token)
