@@ -2,8 +2,7 @@ from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 from typing_extensions import Self
-from pydantic import BaseModel, model_validator
-from pydantic.networks import EmailStr
+from pydantic import BaseModel, model_validator, ConfigDict, EmailStr, Field
 from fastapi import HTTPException, UploadFile, Form, File
 from .roles import RoleSchema
 
@@ -12,15 +11,14 @@ class AuthProfileSchema(BaseModel):
     id: int
     username: str
     email: EmailStr
-    image: Optional[str] = None
-    first_name: str
-    last_name: str
-    roles: Optional[List[RoleSchema]] = None
+    avatar: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    roles: List[RoleSchema] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AuthProfileUpdateSchema:

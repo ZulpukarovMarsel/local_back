@@ -1,5 +1,5 @@
 import random
-from datetime import datetime, timedelta
+import datetime
 
 from jose import JWTError, jwt
 from fastapi import HTTPException
@@ -54,7 +54,7 @@ class AuthService(BaseService):
         user = await self.user_repo.get_by_email(email)
         if not user:
             return None
-        if not self.verify_password(password, user.password):
+        if not self.user_service.verify_password(password, user.password):
             return None
         return user
 
@@ -69,6 +69,7 @@ class AuthService(BaseService):
 
         try:
             user = await self.user_repo.create_data(data)
+            user = await self.user_repo.get_by_id_with_roles(user.id)
             return user
         except IntegrityError:
             raise HTTPException(status_code=409, detail="User with this email already exists")
