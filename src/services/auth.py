@@ -1,6 +1,7 @@
 import random
 import datetime
 
+from datetime import timezone
 from jose import JWTError, jwt
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
@@ -96,7 +97,7 @@ class AuthService(BaseService):
         return JSONResponse(status_code=201, content=jsonable_encoder(data))
 
     async def change_password(self, user: User, old_password: str, password: str):
-        verify_password = self.verify_password(old_password, user.password)
+        verify_password = self.user_service.verify_password(old_password, user.password)
         if verify_password:
             user_data = {
                 "password": password
@@ -176,7 +177,7 @@ class OTPService(BaseService):
         if not otp:
             raise HTTPException(status_code=400, detail="Ваш почта или код не правильный")
 
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(timezone.utc)
         diff = now - otp.created_at
 
         if diff.total_seconds() > OTP_TTL_SECONDS:
