@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer
 
 from middleware import AuthMiddleware, DBSessionMiddleware
 from api.routers import router as api_router
@@ -21,6 +22,8 @@ app = FastAPI(
     version="0.0.1",
     lifespan=lifespan,
 )
+
+security = HTTPBearer()
 
 if settings.CORS_ORIGINS:
     app.add_middleware(

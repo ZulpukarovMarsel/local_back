@@ -24,17 +24,23 @@ class BaseService:
 
     @staticmethod
     async def upload_image(file: UploadFile, image_path: str):
-        if not file.content_type.startswith("image/"):
+        if not file.content_type or not file.content_type.startswith("image/"):
             raise HTTPException(status_code=400, detail="Only image files allowed")
 
         media_dir: Path = settings.media_path / image_path
         media_dir.mkdir(parents=True, exist_ok=True)
 
-        filename = f"{uuid.uuid4().hex}_{file.filename}"
+        safe_name = (file.filename or "image").replace("/", "_").replace("\\", "_")
+        filename = f"{uuid.uuid4().hex}_{safe_name}"
         file_path = media_dir / filename
 
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        try:
+            file.file.seek(0)
+
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+        finally:
+            await file.close()
 
         return {"image_path": f"/media/{image_path}/{filename}"}
 

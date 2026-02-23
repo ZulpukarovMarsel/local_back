@@ -28,14 +28,14 @@ class AuthProfileUpdateSchema:
         last_name: Optional[str] = Form(None),
         email: Optional[EmailStr] = Form(None),
         username: Optional[str] = Form(None),
-        image: Optional[UploadFile] = File(None),
+        avatar: Optional[UploadFile] = File(None),
         roles: Optional[List[RoleSchema]] = None
     ):
         self.first_name = first_name
         self.last_name = last_name
         self.username = username
         self.email = email
-        self.image = image
+        self.avatar = avatar
         self.roles = roles
 
     def dict(self, exclude_unset=True):

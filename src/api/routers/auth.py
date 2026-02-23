@@ -14,8 +14,11 @@ from schemas.auth import (
     AuthTokenRefreshSchema, AuthTokenRefreshResponseSchema,
     OTPSchema, OTPCheckSchema,
 )
-from services import BaseService, UserService, AuthService, OTPService
-from dependencies import get_user_repo, get_auth_service, get_user_service, get_otp_service
+from services import UserService, AuthService, OTPService
+from dependencies import (
+    get_user_repo, get_auth_service, get_user_service,
+    get_otp_service, get_profile_update_data, get_current_user
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -80,24 +83,6 @@ async def reset_password(data: AuthResetPasswordSchema, otp_service: OTPService 
     return {"status": "success", "message": "Вы успешно обновили пароль"}
 
 
-@router.get("/me", response_model=AuthProfileSchema)
-async def profile(request: Request):
-    user = request.state.user
-    if not user:
-        raise HTTPException(status_code=401, detail="User is not authanticate")
-    data = {
-        "id": user.id,
-        "avatar": f'{str(request.base_url).rstrip("/")}{user.avatar}' if user.avatar else 'none',
-        "email": user.email,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "roles": user.roles,
-        "created_at": user.created_at,
-        "updated_at": user.updated_at
-    }
-    return JSONResponse(status_code=200, content=jsonable_encoder(data))
-
-
 @router.post("/logout")
 async def logout(request: Request, response: Response):
     try:
@@ -114,31 +99,30 @@ async def logout(request: Request, response: Response):
         raise HTTPException(status_code=500, detail="Ошибка при выходе из системы")
 
 
+@router.get("/me", response_model=AuthProfileSchema)
+async def profile(request: Request, user=Depends(get_current_user)):
+    return JSONResponse(status_code=200, content=jsonable_encoder({
+        "id": user.id,
+        "avatar": f'{str(request.base_url).rstrip("/")}{user.avatar}' if user.avatar else 'none',
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "roles": user.roles,
+        "created_at": user.created_at,
+        "updated_at": user.updated_at
+    }))
+
+
 @router.patch("/me", response_model=AuthProfileSchema)
-async def profile_update(request: Request, auth_data: AuthProfileUpdateSchema = Depends()):
-    try:
-        db = request.state.db
-        user = request.state.user
-        if not user:
-            raise HTTPException(status_code=401, detail="User is not authenticated")
-        update_data = auth_data.dict(exclude_unset=True)
-        if "image" in update_data:
-            update_data.pop("image")
-
-        if auth_data.image:
-            image_info = await BaseService.upload_image(auth_data.image, "avatars")
-            update_data["image"] = image_info['image_path']
-            {str(request.base_url).rstrip("/")}
-
-        user_repo = UserRepository(db)
-        profile_updated = await user_repo.patch_user(user.id, update_data)
-        if profile_updated.image:
-            profile_updated.image = f'{str(request.base_url).rstrip("/")}{profile_updated.image}'
-        return AuthProfileSchema.model_validate(profile_updated)
-
-    except Exception as e:
-        logger.exception("Ошибка в обновлении профиля")
-        raise HTTPException(status_code=500, detail=str(e))
+async def profile_update(
+    request: Request, auth_data: AuthProfileUpdateSchema = Depends(get_profile_update_data),
+    user_service: UserService = Depends(get_user_service), user=Depends(get_current_user)
+):
+    return await user_service.update_profile(
+        user_id=user.id,
+        data=auth_data,
+        base_url=str(request.base_url).rstrip("/")
+    )
 
 
 @router.post("/token/refresh", response_model=AuthTokenRefreshResponseSchema)

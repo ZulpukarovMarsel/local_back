@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from repositories import UserRepository
 from schemas.user import (
-    UserRead
+    UserReadSchema
 )
 from dependencies import get_user_repo
 
@@ -20,7 +20,7 @@ router = APIRouter(
 )
 
 
-@router.get("/users", response_model=List[UserRead], status_code=200)
+@router.get("/users", response_model=List[UserReadSchema], status_code=200)
 async def get_users(
     user_repo: UserRepository = Depends(get_user_repo)
 ):

@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from services.base_service import BaseService
 from repositories import UserRepository, RoleRepository
+from schemas.auth import AuthProfileSchema, AuthProfileUpdateSchema
 from models import User
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -70,9 +71,29 @@ class UserService(BaseService):
             setattr(user, k, v)
         try:
             await self.user_repo.db.flush()
+            await self.user_repo.db.refresh(user)
         except IntegrityError:
             raise HTTPException(status_code=409, detail="User with this email already exists")
         except SQLAlchemyError:
             raise
 
         return user
+
+    async def update_profile(self, user_id: int, data: AuthProfileUpdateSchema, base_url: str):
+        update_data = data.dict(exclude_unset=True)
+
+        update_data.pop("avatar", None)
+
+        if data.avatar:
+            avatar_info = await BaseService.upload_image(data.avatar, "avatars")
+            update_data["avatar"] = avatar_info["image_path"]
+
+        user = await self.patch_user(user_id, update_data)
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        if getattr(user, "avatar", None):
+            user.avatar = f"{base_url}{user.avatar}"
+
+        return AuthProfileSchema.model_validate(user)

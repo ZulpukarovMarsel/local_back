@@ -2,7 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 
-class UserBase(BaseModel):
+class UserBaseSchema(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: Optional[EmailStr] = None
     avatar: Optional[str] = ""
@@ -10,11 +10,11 @@ class UserBase(BaseModel):
     last_name: Optional[str] = None
 
 
-class UserCreate(UserBase):
+class UserCreateSchema(UserBaseSchema):
     password: str = Field(..., min_length=6)
 
 
-class UserUpdate(BaseModel):
+class UserUpdateSchema(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr] = None
     avatar: Optional[str] = None
@@ -23,7 +23,7 @@ class UserUpdate(BaseModel):
     password: Optional[str] = Field(None, min_length=6)
 
 
-class UserRead(UserBase):
+class UserReadSchema(UserBaseSchema):
     id: int
     roles: List[str] = []
 

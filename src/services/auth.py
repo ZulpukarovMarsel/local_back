@@ -25,6 +25,8 @@ class AuthService(BaseService):
     ):
         self.secret_key = settings.JWT_SECRET_KEY
         self.algorithm = settings.JWT_ALGORITHM
+        self.access_seconds = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        self.refresh_seconds = settings.JWT_REFRESH_TOKEN_EXPIRE_MINUTES * 60
         self.user_repo = user_repo
         self.user_service = user_service
 
@@ -41,8 +43,10 @@ class AuthService(BaseService):
         except JWTError:
             return None
 
-    async def get_user_from_token(self, token: str) -> dict:
-        payload = self.verify_token(token)
+    async def get_user_from_token(self, refresh_token: str) -> dict:
+        payload = self.verify_token(refresh_token)
+        if not payload or payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
         if payload.get("error"):
             return None
         user_id = payload.get("user_id")
@@ -83,8 +87,8 @@ class AuthService(BaseService):
         access_payload = {"user_id": user.id, "type": "access"}
         refresh_payload = {"user_id": user.id, "type": "refresh"}
 
-        access_token = self.create_token(access_payload, expires_delta=8640000)
-        refresh_token = self.create_token(refresh_payload, expires_delta=8640000)
+        access_token = self.create_token(access_payload, expires_delta=self.access_seconds)
+        refresh_token = self.create_token(refresh_payload, expires_delta=self.refresh_seconds)
 
         if not access_token or not refresh_token:
             raise HTTPException(status_code=500, detail="Token creation failed")
@@ -108,10 +112,9 @@ class AuthService(BaseService):
 
     async def update_access_token(self, refresh_token: str):
         try:
-            payload = self.verify_token(refresh_token)
-            user_id = payload.get("user_id")
-            if payload:
-                access_payload = {"user_id": user_id, "type": "access"}
+            user = await self.get_user_from_token(refresh_token)
+            if user:
+                access_payload = {"user_id": user.id, "type": "access"}
 
                 access_token = self.create_token(access_payload, expires_delta=8640000)
                 data = {
