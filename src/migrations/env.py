@@ -7,7 +7,7 @@ from alembic import context
 from core.settings import settings
 from models import (
     Base, User, Role,
-    OTP, Post, PostType,
+    OTP, Post, Attachment,
     Like, Favorite, Comment
 )
 

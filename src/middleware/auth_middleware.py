@@ -8,7 +8,6 @@ from core.settings import settings
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         request.state.user = None
-
         token = request.headers.get("Authorization")
         if token and token.startswith("Bearer "):
             token = token[7:].strip()
@@ -21,7 +20,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 )
                 user_id = payload.get("user_id")
                 token_type = payload.get("type")
-
                 if user_id and token_type == "access":
                     db = request.state.db
                     user_repo = UserRepository(db)

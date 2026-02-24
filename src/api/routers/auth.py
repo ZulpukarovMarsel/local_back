@@ -120,8 +120,7 @@ async def profile_update(
 ):
     return await user_service.update_profile(
         user_id=user.id,
-        data=auth_data,
-        base_url=str(request.base_url).rstrip("/")
+        data=auth_data
     )
 
 

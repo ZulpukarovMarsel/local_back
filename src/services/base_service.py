@@ -23,26 +23,35 @@ conf = ConnectionConfig(
 class BaseService:
 
     @staticmethod
-    async def upload_image(file: UploadFile, image_path: str):
-        if not file.content_type or not file.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="Only image files allowed")
+    async def upload_file(
+        file: UploadFile,
+        folder: str,
+        allowed_types: list[str] | None = None
+    ):
+        if not file.content_type:
+            raise HTTPException(status_code=400, detail="Invalid file")
 
-        media_dir: Path = settings.media_path / image_path
+        if allowed_types and not any(file.content_type.startswith(t) for t in allowed_types):
+            raise HTTPException(status_code=400, detail="File type not allowed")
+
+        media_dir: Path = settings.media_path / folder
         media_dir.mkdir(parents=True, exist_ok=True)
 
-        safe_name = (file.filename or "image").replace("/", "_").replace("\\", "_")
+        safe_name = (file.filename or "file").replace("/", "_").replace("\\", "_")
         filename = f"{uuid.uuid4().hex}_{safe_name}"
         file_path = media_dir / filename
 
         try:
             file.file.seek(0)
-
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
         finally:
             await file.close()
 
-        return {"image_path": f"/media/{image_path}/{filename}"}
+        return {
+            "file_path": f"/media/{folder}/{filename}",
+            "file_type": file.content_type
+        }
 
     @staticmethod
     async def send_message_to_email(emails_to: list, message: str) -> bool:

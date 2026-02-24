@@ -1,13 +1,13 @@
 from sqlalchemy import select, func
 
 from .base_repository import BaseRepository
-from models import Comment
+from models import Favorite
 
 
-class CommentRepository(BaseRepository):
-    model = Comment
+class FavoriteRepository(BaseRepository):
+    model = Favorite
 
-    async def get_comments_count(self, post_id: int) -> int:
+    async def get_favorites_count(self, post_id: int) -> int:
         stmt = select(func.count(self.model.id)).where(self.model.post_id == post_id)
         result = await self.db.execute(stmt)
         return result.scalar_one()

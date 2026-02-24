@@ -79,14 +79,18 @@ class UserService(BaseService):
 
         return user
 
-    async def update_profile(self, user_id: int, data: AuthProfileUpdateSchema, base_url: str):
+    async def update_profile(self, user_id: int, data: AuthProfileUpdateSchema):
         update_data = data.dict(exclude_unset=True)
 
         update_data.pop("avatar", None)
 
         if data.avatar:
-            avatar_info = await BaseService.upload_image(data.avatar, "avatars")
-            update_data["avatar"] = avatar_info["image_path"]
+            avatar_info = await BaseService.upload_file(
+                data.avatar,
+                folder="avatars",
+                allowed_types=["image/"]
+            )
+            update_data["avatar"] = avatar_info["file_path"]
 
         user = await self.patch_user(user_id, update_data)
 
@@ -94,6 +98,6 @@ class UserService(BaseService):
             raise HTTPException(status_code=404, detail="User not found")
 
         if getattr(user, "avatar", None):
-            user.avatar = f"{base_url}{user.avatar}"
+            user.avatar = f"{user.avatar}"
 
         return AuthProfileSchema.model_validate(user)
