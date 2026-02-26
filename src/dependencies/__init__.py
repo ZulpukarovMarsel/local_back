@@ -5,6 +5,7 @@ from dependencies.otp import get_otp_repo, get_otp_service
 from dependencies.role import get_role_repo
 from dependencies.post import get_post_repo, get_post_service
 from dependencies.attachment import get_attachment_repo, get_attachment_service
+from dependencies.comment import get_comment_repo, get_comment_service
 
 __all__ = [
     "get_db",
@@ -26,5 +27,8 @@ __all__ = [
     "get_post_service",
 
     "get_attachment_repo",
-    "get_attachment_service"
+    "get_attachment_service",
+
+    "get_comment_repo",
+    "get_comment_service"
 ]

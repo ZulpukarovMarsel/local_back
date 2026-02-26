@@ -21,13 +21,15 @@ class Comment(Base):
     parent: Mapped[Optional["Comment"]] = relationship(
         "Comment",
         remote_side="Comment.id",
-        back_populates="replies"
+        back_populates="replies",
+        lazy="selectin"
     )
 
     replies: Mapped[List["Comment"]] = relationship(
         "Comment",
         back_populates="parent",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy="selectin"
     )
 
     def __repr__(self):

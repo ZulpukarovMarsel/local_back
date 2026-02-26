@@ -28,7 +28,3 @@ class PostReadSchema(PostBaseSchema):
     attachments: List["AttachmentReadSchema"] = []
 
     model_config = ConfigDict(from_attributes=True)
-
-
-# class PostsResponse(BaseModel):
-#     items: List[PostReadSchema]

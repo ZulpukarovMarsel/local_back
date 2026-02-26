@@ -9,7 +9,6 @@ class CommentBaseSchema(BaseModel):
 
 
 class CommentCreateSchema(BaseModel):
-    post_id: int
     parent_id: Optional[int] = None
     text: str = Field(..., min_length=1)
 
