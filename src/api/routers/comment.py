@@ -1,8 +1,6 @@
-from typing import List, Optional
-from fastapi import APIRouter, Depends, UploadFile, File, Form, Request, Security
-from fastapi.security import HTTPAuthorizationCredentials
+from typing import List
+from fastapi import APIRouter, Depends
 
-# from services import
 from repositories import CommentRepository
 from services import CommentService
 from dependencies import get_comment_repo, get_current_user, get_comment_service
@@ -12,11 +10,7 @@ router = APIRouter(
     prefix="/comments",
     tags=["comments"],
     responses={404: {"description": "Not found"}}
-    # dependencies=[Depends(lambda: None)]
 )
-
-# @router.get("/", response_model=None)
-# async def get_comments():
 
 
 @router.post("/{post_id}", response_model=CommentReadSchema)

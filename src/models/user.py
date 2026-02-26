@@ -15,8 +15,12 @@ class User(Base):
     roles: Mapped[List["Role"]] = relationship(secondary=user_role, back_populates="users", lazy="selectin")
     posts: Mapped[List["Post"]] = relationship("Post", back_populates="author")
     comments: Mapped[List["Comment"]] = relationship("Comment", back_populates="author")
-    likes: Mapped[List["Like"]] = relationship("Like", back_populates="user")
+    likes: Mapped[List["Like"]] = relationship("Like", back_populates="author")
     favorites: Mapped[List["Favorite"]] = relationship("Favorite", back_populates="user")
+    like_comments: Mapped[List["LikeComment"]] = relationship(
+        "LikeComment",
+        back_populates="author"
+    )
 
     def full_name(self):
         return f"{self.last_name} {self.first_name}"

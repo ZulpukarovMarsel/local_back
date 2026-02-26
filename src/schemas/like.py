@@ -7,7 +7,7 @@ class LikeCreateSchema(BaseModel):
 
 class LikeReadSchema(BaseModel):
     id: int
-    user_id: int
+    author_id: int
     post_id: int
 
     model_config = ConfigDict(from_attributes=True)

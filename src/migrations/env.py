@@ -8,7 +8,8 @@ from core.settings import settings
 from models import (
     Base, User, Role,
     OTP, Post, Attachment,
-    Like, Favorite, Comment
+    Like, Favorite, Comment,
+    LikeComment
 )
 
 config = context.config
