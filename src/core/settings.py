@@ -28,6 +28,8 @@ class Setting(BaseSettings):
 
     TOKEN: str
     REDIS_URL: str
+    REDIS_HOST: str
+    REDIS_PORT: int
 
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"

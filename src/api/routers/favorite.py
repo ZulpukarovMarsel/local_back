@@ -3,6 +3,7 @@ from typing import List
 from repositories import FavoriteRepository
 from dependencies import get_current_user, get_favorite_repo
 from schemas.favority import FavoriteReadSchema, FavoriteCreateSchema
+from core.redis import redis_client
 
 router = APIRouter(
     prefix="/favorites",
@@ -17,6 +18,7 @@ async def create_favorite(data: FavoriteCreateSchema, favorite_repo: FavoriteRep
         "user_id": user.id,
         "post_id": data.post_id
     })
+    await redis_client.delete(f"post:{data.post_id}")
     return FavoriteReadSchema.from_orm(favorite)
 
 

@@ -21,7 +21,6 @@ class PostReadSchema(PostBaseSchema):
     id: int
     author_id: int
     author: UserReadSchema
-    comments: List[CommentReadSchema] = []
     comments_count: int = 0
     likes_count: int = 0
     favorites_count: int = 0
