@@ -8,8 +8,10 @@ from core.settings import settings
 from models import (
     Base, User, Role,
     OTP, Post, Attachment,
-    Like, Favorite, Comment,
-    LikeComment
+    Like, Favorite,
+    Comment, LikeComment,
+    Chat, ChatRole, ChatParticipant,
+    Message
 )
 
 config = context.config

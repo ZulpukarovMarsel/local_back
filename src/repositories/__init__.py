@@ -6,6 +6,8 @@ from repositories.attachment import AttachmentRepository
 from repositories.comment import CommentRepository
 from repositories.like import LikeRepository
 from repositories.favorite import FavoriteRepository
+from repositories.message import MessageRepository
+from repositories.chat import ChatRepository, ChatParticipantRepository, ChatRoleRepository
 
 __all__ = [
     "UserRepository",
@@ -15,5 +17,9 @@ __all__ = [
     "AttachmentRepository",
     "CommentRepository",
     "LikeRepository",
-    "FavoriteRepository"
+    "FavoriteRepository",
+    "ChatRepository",
+    "ChatParticipantRepository",
+    "ChatRoleRepository",
+    "MessageRepository"
 ]

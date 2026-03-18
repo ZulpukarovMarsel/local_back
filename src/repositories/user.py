@@ -35,6 +35,10 @@ class UserRepository(BaseRepository):
         result = await self.db.execute(select(self.model).where(self.model.email == email))
         return result.scalar_one_or_none()
 
+    async def get_by_username(self, username: str):
+        result = await self.db.execute(select(self.model).where(self.model.username == username))
+        return result.scalar_one_or_none()
+
     async def get_by_email_and_username(self, email: EmailStr, username: str):
         result = await self.db.execute(select(self.model).where(self.model.email == email, self.model.username == username))
         return result.scalar_one_or_none()
@@ -47,3 +51,8 @@ class UserRepository(BaseRepository):
         )
         res = await self.db.execute(stmt)
         return res.scalar_one_or_none()
+
+    async def search_by_username(self, query: str, limit: int = 10):
+        stmt = select(self.model).where(self.model.username.ilike(f"%{query}%")).limit(limit)
+        result = await self.db.execute(stmt)
+        return result.scalars().all()

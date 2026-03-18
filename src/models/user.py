@@ -6,7 +6,7 @@ from models.association_tables import user_role
 
 
 class User(Base):
-    username: Mapped[str] = mapped_column(unique=True, nullable=False, default=False)
+    username: Mapped[str] = mapped_column(unique=True, nullable=False)
     email: Mapped[str] = mapped_column(unique=True, nullable=True)
     avatar: Mapped[str] = mapped_column(nullable=True, default="")
     first_name: Mapped[str] = mapped_column(nullable=True)
@@ -21,6 +21,8 @@ class User(Base):
         "LikeComment",
         back_populates="author"
     )
+    messages: Mapped[List["Message"]] = relationship("Message", back_populates="sender")
+    chats: Mapped[List["ChatParticipant"]] = relationship("ChatParticipant", back_populates="user", cascade="all, delete-orphan")
 
     def full_name(self):
         return f"{self.last_name} {self.first_name}"

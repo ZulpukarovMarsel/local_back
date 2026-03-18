@@ -14,7 +14,7 @@ from core.redis import redis_client
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await db_instance.create_database()
+    # await db_instance.create_database()
     yield
 
 app = FastAPI(
