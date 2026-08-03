@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String
+from sqlalchemy import String, ForeignKey
 from typing import List
 
 from models.base_model import Base
@@ -25,9 +25,19 @@ class User(Base):
     )
     messages: Mapped[List["Message"]] = relationship("Message", back_populates="sender")
     chats: Mapped[List["ChatParticipant"]] = relationship("ChatParticipant", back_populates="user", cascade="all, delete-orphan")
+    followers: Mapped[List["UserFollow"]] = relationship("UserFollow", back_populates="follower", cascade="all, delete-orphan")
+    followings: Mapped[List["UserFollow"]] = relationship("UserFollow", back_populates="following", cascade="all, delete-orphan")
 
     def full_name(self):
         return f"{self.last_name} {self.first_name}"
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username})>"
+
+
+class UserFollow(Base):
+    follower_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True)
+    follower: Mapped["User"] = relationship("User", back_populates="followers")
+
+    following_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True)
+    following: Mapped["User"] = relationship("User", back_populates="followings")

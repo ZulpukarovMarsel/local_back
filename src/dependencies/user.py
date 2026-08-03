@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from repositories import UserRepository, RoleRepository
+from repositories import UserRepository, UserFollowRepository, RoleRepository
 from services import UserService, ChatParticipantService
 from dependencies.db import get_db
 from dependencies.role import get_role_repo
@@ -25,6 +25,10 @@ async def get_current_user_raw(request: Request, credentials: HTTPAuthorizationC
 
 async def get_user_repo(db: AsyncSession = Depends(get_db)):
     return UserRepository(db)
+
+
+async def get_user_follow_repo(db: AsyncSession = Depends(get_db)):
+    return UserFollowRepository(db)
 
 
 async def get_user_service(user_repo: UserRepository = Depends(get_user_repo), role_repo: RoleRepository = Depends(get_role_repo)):

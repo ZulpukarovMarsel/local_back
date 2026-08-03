@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from alembic import context
 from core.settings import settings
 from models import (
-    Base, User, Role,
+    Base, User, UserFollow, Role,
     OTP, Post, Attachment,
     Like, Favorite,
     Comment, LikeComment,

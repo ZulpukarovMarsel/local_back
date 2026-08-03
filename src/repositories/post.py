@@ -23,3 +23,15 @@ class PostRepository(BaseRepository):
         )
         res = await self.db.execute(stmt)
         return res.scalar_one_or_none()
+
+    async def get_data_by_username(self, username: str):
+        stmt = (
+            select(self.model)
+            .where(self.author.username == username)
+            .options(
+                selectinload(self.model.author),
+                selectinload(self.model.attachments),
+            )
+        )
+        res = await self.db.execute(stmt)
+        return res.scalar_one_or_none()

@@ -1,4 +1,7 @@
-from dependencies.user import get_user_repo, get_user_service, get_current_user, get_current_user_raw, verify_participant
+from dependencies.user import (
+    get_user_repo, get_user_follow_repo, get_user_service,
+    get_current_user, get_current_user_raw, verify_participant
+)
 from dependencies.auth import get_auth_service, get_profile_update_data
 from dependencies.db import get_db
 from dependencies.otp import get_otp_repo, get_otp_service
@@ -18,6 +21,7 @@ __all__ = [
     "get_db",
 
     "get_user_repo",
+    "get_user_follow_repo",
     "get_user_service",
     "get_current_user",
     "get_current_user_raw",

@@ -1,5 +1,5 @@
 from models.base_model import Base
-from models.user import User
+from models.user import User, UserFollow
 from models.role import Role
 from models.otp import OTP
 from models.post import Post
@@ -15,6 +15,7 @@ from models.message import Message
 __all__ = [
     "Base",
     "User",
+    "UserFollow",
     "Role",
     "OTP",
     "Post",

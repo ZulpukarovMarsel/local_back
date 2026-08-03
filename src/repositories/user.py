@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from pydantic.networks import EmailStr
 
-from models import User
+from models import User, UserFollow
 from repositories.base_repository import BaseRepository
 
 
@@ -56,3 +56,32 @@ class UserRepository(BaseRepository):
         stmt = select(self.model).where(self.model.username.ilike(f"%{query}%")).limit(limit)
         result = await self.db.execute(stmt)
         return result.scalars().all()
+
+
+class UserFollowRepository(BaseRepository):
+    model = UserFollow
+
+    async def get_data_by_follower_id_and_following_id(self, follower_id: int, following_id: int, *options):
+        stmt = select(self.model).where(self.model.follower_id == follower_id, self.model.following_id == following_id)
+        if options:
+            stmt = stmt.options(*options)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_user_followers(self, username: str):
+        stmt = select(self.model).where(self.model.follower.username == username)
+        result = await self.db.execute(stmt)
+        return result.scalars().all()
+
+    async def get_user_followings(self, username: str):
+        stmt = select(self.model).where(self.model.following.username == username)
+        result = await self.db.execute(stmt)
+        return result.scalars().all()
+
+    async def unfollow(self, follower_id: int, following_id: int):
+        obj = await self.get_data_by_follower_id_and_following_id(follower_id, following_id)
+        if not obj:
+            return None
+        await self.db.delete(obj)
+        await self.db.flush()
+        return obj

@@ -1,4 +1,4 @@
-from repositories.user import UserRepository
+from repositories.user import UserRepository, UserFollowRepository
 from repositories.role import RoleRepository
 from repositories.otp import OTPRepository
 from repositories.post import PostRepository
@@ -11,6 +11,7 @@ from repositories.chat import ChatRepository, ChatParticipantRepository, ChatRol
 
 __all__ = [
     "UserRepository",
+    "UserFollowRepository",
     "RoleRepository",
     "OTPRepository",
     "PostRepository",

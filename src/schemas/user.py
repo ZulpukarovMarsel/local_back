@@ -28,3 +28,17 @@ class UserReadSchema(UserBaseSchema):
     roles: List[str] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserFollowerReadSchema(BaseModel):
+    follower_id: int
+    follower: None
+    following_id: int
+    following: UserBaseSchema
+
+
+class UserFollowingReadSchema(BaseModel):
+    follower_id: int
+    follower: UserBaseSchema
+    following_id: int
+    following: None
