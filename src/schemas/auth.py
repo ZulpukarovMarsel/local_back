@@ -14,6 +14,7 @@ class AuthProfileSchema(BaseModel):
     avatar: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    bio: Optional[str] = None
     roles: List[RoleSchema] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
@@ -21,27 +22,14 @@ class AuthProfileSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class AuthProfileUpdateSchema:
-    def __init__(
-        self,
-        first_name: Optional[str] = Form(None),
-        last_name: Optional[str] = Form(None),
-        email: Optional[EmailStr] = Form(None),
-        username: Optional[str] = Form(None),
-        avatar: Optional[UploadFile] = File(None),
-        roles: Optional[List[RoleSchema]] = None
-    ):
-        self.first_name = first_name
-        self.last_name = last_name
-        self.username = username
-        self.email = email
-        self.avatar = avatar
-        self.roles = roles
-
-    def dict(self, exclude_unset=True):
-        return {
-            k: v for k, v in self.__dict__.items() if v is not None
-        }
+class AuthProfileUpdateSchema(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    bio: Optional[str] = None
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    avatar: Optional[UploadFile] = None
+    roles: Optional[List[RoleSchema]] = None
 
 
 class AuthLoginSchema(BaseModel):

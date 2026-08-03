@@ -13,16 +13,18 @@ async def get_auth_service(user_repo: UserRepository = Depends(get_user_repo), u
 
 
 async def get_profile_update_data(
+    avatar: Optional[UploadFile] = File(None),
+    username: Optional[str] = Form(None),
     first_name: Optional[str] = Form(None),
     last_name: Optional[str] = Form(None),
+    bio: Optional[str] = Form(None),
     email: Optional[EmailStr] = Form(None),
-    username: Optional[str] = Form(None),
-    avatar: Optional[UploadFile] = File(None),
 ):
     return AuthProfileUpdateSchema(
+        avatar=avatar,
+        username=username,
         first_name=first_name,
         last_name=last_name,
+        bio=bio,
         email=email,
-        username=username,
-        avatar=avatar,
     )

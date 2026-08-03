@@ -25,11 +25,6 @@ class UserService(BaseService):
     def verify_password(password: str, hashed_password: str) -> bool:
         return pwd_context.verify(password, hashed_password)
 
-    # async def create_user(self, user_data):
-    #     user_data = user_data.copy()
-    #     user_data['password'] = self.hash_password(user_data['password'])
-    #     return await self.user_repo.create_data(user_data)
-
     async def update_user(self, user_id: int, data: dict[str, Any]) -> User | None:
         user = await self.user_repo.get_data_by_id(user_id)
         if not user:
@@ -79,8 +74,8 @@ class UserService(BaseService):
 
         return user
 
-    async def update_profile(self, user_id: int, data: AuthProfileUpdateSchema):
-        update_data = data.dict(exclude_unset=True)
+    async def update_profile(self, user_id: int, data: AuthProfileUpdateSchema, base_url: str):
+        update_data = data.model_dump(exclude_none=True)
 
         update_data.pop("avatar", None)
 
@@ -100,4 +95,13 @@ class UserService(BaseService):
         if getattr(user, "avatar", None):
             user.avatar = f"{user.avatar}"
 
-        return AuthProfileSchema.model_validate(user)
+        response = AuthProfileSchema.model_validate(user)
+
+        if user.avatar:
+            avatar_url = (
+                f"{base_url.rstrip('/')}/{user.avatar.lstrip('/')}"
+            )
+            response = response.model_copy(
+                update={"avatar": avatar_url}
+            )
+        return response

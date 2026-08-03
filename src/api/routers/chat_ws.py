@@ -52,11 +52,8 @@ async def chat_ws(
     message_repo: MessageRepository = Depends(get_message_repo),
     auth_service: AuthService = Depends(get_auth_service),
 ):
-    # 🔐 Авторизация
     token = websocket.query_params.get("token")
-    print("Token:", token)
     payload = auth_service.verify_token(token)
-    print("Payload:", payload)
     if not payload or payload.get("type") != "access":
         await websocket.close(code=1008)
         return

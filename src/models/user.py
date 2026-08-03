@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String
 from typing import List
 
 from models.base_model import Base
@@ -11,6 +12,7 @@ class User(Base):
     avatar: Mapped[str] = mapped_column(nullable=True, default="")
     first_name: Mapped[str] = mapped_column(nullable=True)
     last_name: Mapped[str] = mapped_column(nullable=True)
+    bio: Mapped[str | None] = mapped_column(String(150), nullable=True)
     password: Mapped[str] = mapped_column(nullable=False)
     roles: Mapped[List["Role"]] = relationship(secondary=user_role, back_populates="users", lazy="selectin")
     posts: Mapped[List["Post"]] = relationship("Post", back_populates="author")

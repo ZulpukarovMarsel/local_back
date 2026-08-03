@@ -104,9 +104,11 @@ async def profile(request: Request, user=Depends(get_current_user)):
     return JSONResponse(status_code=200, content=jsonable_encoder({
         "id": user.id,
         "avatar": f'{str(request.base_url).rstrip("/")}{user.avatar}' if user.avatar else 'none',
+        "username": user.username,
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
+        "bio": user.bio,
         "roles": user.roles,
         "created_at": user.created_at,
         "updated_at": user.updated_at
@@ -120,7 +122,8 @@ async def profile_update(
 ):
     return await user_service.update_profile(
         user_id=user.id,
-        data=auth_data
+        data=auth_data,
+        base_url=str(request.base_url)
     )
 
 
