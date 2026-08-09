@@ -1,6 +1,6 @@
 import logging
 from typing import List
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 
 from services import ChatService, UserService
 
@@ -58,8 +58,22 @@ async def get_suggestions(user_repo: UserRepository = Depends(get_user_repo)):
     return await user_repo.get_all()
 
 
-@router.post("/{user_id}/follow", response_model=None)
+@router.put("/{user_id}/follow", response_model=None)
 async def user_follow(user_id: int, user_follow_repo: UserFollowRepository = Depends(get_user_follow_repo), user=Depends(get_current_user)):
+    if user.id == user_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Нельзя подписаться на самого себя",
+        )
+
+    follow = await user_follow_repo.get_data_by_follower_id_and_following_id(
+        follower_id=user.id,
+        following_id=user_id,
+    )
+
+    if follow:
+        return follow
+
     return await user_follow_repo.create_data({"follower_id": user.id, "following_id": user_id})
 
 
