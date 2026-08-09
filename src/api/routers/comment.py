@@ -13,11 +13,19 @@ router = APIRouter(
 )
 
 
-@router.post("/{post_id}", response_model=CommentReadSchema)
-async def create_comment(post_id: int, data: CommentCreateSchema, comment_service: CommentService = Depends(get_comment_service), author=Depends(get_current_user)):
-    return await comment_service.create_comment(post_id, data, author)
+# TODO: 0.1.3 - Удалить комментарий
+@router.delete("{comment_id}")
+async def delete_comment(comment_id: int):
+    return None
 
 
-@router.get("/{post_id}", response_model=List[CommentReadSchema])
-async def get_comments_by_post(post_id: int, comment_repo: CommentRepository = Depends(get_comment_repo)):
-    return await comment_repo.get_comments_by_post(post_id)
+# TODO: 0.1.3 - Поставить лайк комментарию
+@router.put("{comment_id}/like")
+async def like_comment(comment_id: int):
+    return None
+
+
+# TODO: 0.1.3 - Удалить лайк к  комментарию
+@router.delete("{comment_id}/like")
+async def delete_like_comment(comment_id: int):
+    return None

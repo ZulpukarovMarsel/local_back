@@ -5,6 +5,7 @@ from typing import List
 from models.base_model import Base
 
 
+# TODO: 0.1.2 - Добавить новые поля для поста
 class Post(Base):
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     author: Mapped["User"] = relationship("User", back_populates="posts")

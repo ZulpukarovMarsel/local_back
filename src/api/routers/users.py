@@ -52,6 +52,7 @@ async def get_user_followers(username: str, user_follow_repo: UserFollowReposito
 async def get_user_followings(username: str, user_follow_repo: UserFollowRepository = Depends(get_user_follow_repo)):
     return await user_follow_repo.get_user_followings(username)
 
+
 # TODO: Подумать и сделать логику рек людей для пользователя на главной странице
 @router.get("/suggestions", response_model=List[UserReadSchema])
 async def get_suggestions(user_repo: UserRepository = Depends(get_user_repo)):
