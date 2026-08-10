@@ -79,3 +79,14 @@ async def get_likes(post_id: int):
 # @router.post("/{post_id}/comments", response_model=CommentReadSchema)
 # async def create_comment(post_id: int, data: CommentCreateSchema, comment_service: CommentService = Depends(get_comment_service), author=Depends(get_current_user)):
 #     return await comment_service.create_comment(post_id, data, author)
+
+# TODO: 0.1.4 - Реализовать сохраненние посты
+# @router.put("/{post_id}/save")
+# async def post_save(post_id: int):
+    # return None
+
+
+# TODO: 0.1.4 - Реализовать удаление сохраненноно поста
+# @router.delete("{post_id}/save")
+# async def delete_post_save(post_id: int):
+    # return None

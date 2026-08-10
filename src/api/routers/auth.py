@@ -130,3 +130,9 @@ async def profile_update(
 @router.post("/token/refresh", response_model=AuthTokenRefreshResponseSchema)
 async def update_access_token(auth_data: AuthTokenRefreshSchema, auth_service: AuthService = Depends(get_auth_service)):
     return await auth_service.update_access_token(auth_data.refresh_token)
+
+
+# TODO: 0.1.4 - Реализовать мои сохраненные посты
+# @router.get("/me/saved-posts")
+# async def get_saved_posts():
+#     return None
