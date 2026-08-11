@@ -2,7 +2,7 @@ from models.base_model import Base
 from models.user import User, UserFollow
 from models.role import Role
 from models.otp import OTP
-from models.post import Post
+from models.post import Post, PostMedia
 from models.comment import Comment, LikeComment
 from models.like import Like
 from models.favorite import Favorite
@@ -19,6 +19,7 @@ __all__ = [
     "Role",
     "OTP",
     "Post",
+    "PostMedia",
     "Attachment",
     "Comment",
     "LikeComment",

@@ -7,8 +7,8 @@ from alembic import context
 from core.settings import settings
 from models import (
     Base, User, UserFollow, Role,
-    OTP, Post, Attachment,
-    Like, Favorite,
+    OTP, Post, PostMedia,
+    Attachment, Like, Favorite,
     Comment, LikeComment,
     Chat, ChatRole, ChatParticipant,
     Message

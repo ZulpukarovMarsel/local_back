@@ -39,8 +39,24 @@ class Post(Base):
     )
 
     post_type: Mapped[PostType] = mapped_column(
-        Enum(PostType),
+        Enum(
+            PostType,
+            name="post_type_enum",
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
         default=PostType.POST,
+        server_default=PostType.POST.value,
+        nullable=False,
+    )
+
+    visibility: Mapped[PostVisibility] = mapped_column(
+        Enum(
+            PostVisibility,
+            name="post_visibility_enum",
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
+        default=PostVisibility.PUBLIC,
+        server_default=PostVisibility.PUBLIC.value,
         nullable=False,
     )
 
@@ -52,12 +68,6 @@ class Post(Base):
     location: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
-    )
-
-    visibility: Mapped[PostVisibility] = mapped_column(
-        Enum(PostVisibility),
-        default=PostVisibility.PUBLIC,
-        nullable=False,
     )
 
     comments_enabled: Mapped[bool] = mapped_column(
@@ -107,7 +117,11 @@ class PostMedia(Base):
     )
 
     media_type: Mapped[MediaType] = mapped_column(
-        Enum(MediaType),
+        Enum(
+            MediaType,
+            name="media_type_enum",
+            values_callable=lambda enum: [item.value for item in enum],
+        ),
         nullable=False,
     )
 
