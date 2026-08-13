@@ -8,6 +8,7 @@ from sqlalchemy import (
     String,
     Text,
     Float,
+    true
 )
 from typing import List
 
@@ -73,6 +74,7 @@ class Post(Base):
     comments_enabled: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
+        server_default=true(),
         nullable=False,
     )
 
@@ -104,6 +106,11 @@ class Post(Base):
         "Favorite",
         back_populates="post",
         cascade="all, delete-orphan",
+    )
+    saved_posts: Mapped[List["SavedPost"]] = relationship(
+        "SavedPost",
+        back_populates="post",
+        cascade="all, delete-orphan"
     )
 
     def __repr__(self):
@@ -160,12 +167,6 @@ class PostMedia(Base):
         "Post",
         back_populates="media",
     )
-# TODO: 0.1.4 - Реализовать модел сохраненные посты
-    # saved_posts: Mapped[List["SavedPost"]] = relationship(
-    #     "SavedPost",
-    #     back_populates="post",
-    #     cascade="all, delete-orphan"
-    # )
 
 
 # TODO: 0.1.4 - Реализовать модел сохраненные посты
