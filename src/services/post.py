@@ -2,49 +2,133 @@ import asyncio
 import json
 from core.redis import redis_client
 from typing import Optional, List
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 from services.base_service import BaseService
 from repositories import (
-    PostRepository, AttachmentRepository, CommentRepository,
-    LikeRepository, FavoriteRepository
+    PostRepository, CommentRepository,
+    LikeRepository, FavoriteRepository, PostMediaRepository
 )
-from models import User
+from models import User, PostType, PostVisibility, MediaType
 
 
 class PostService(BaseService):
     def __init__(
-            self, post_repo: PostRepository, attachment_repo: AttachmentRepository,
-            comment_repo: CommentRepository, like_repo: LikeRepository, favorite_repo: FavoriteRepository
+            self, post_repo: PostRepository, post_media_repo: PostMediaRepository, comment_repo: CommentRepository,
+            like_repo: LikeRepository, favorite_repo: FavoriteRepository
     ):
         self.post_repo = post_repo
-        self.attachment_repo = attachment_repo
+        self.post_media_repo = post_media_repo
         self.comment_repo = comment_repo
         self.like_repo = like_repo
         self.favorite_repo = favorite_repo
 
-    async def create_post_with_attachments(self, author: User, content: Optional[str], files: List[UploadFile]):
-        post = await self.post_repo.create_data({"author_id": author.id, "content": content})
+    async def get_feed(self, base_url: str):
+        return None
 
-        for f in files:
-            file_info = await self.upload_file(
-                file=f,
-                folder="posts",
-                allowed_types=("image/", "video/"),
+    async def create_post(self, author: User, caption: str, location: str, visibility: PostVisibility, comments_enabled: str, media: List[UploadFile]):
+        if not media:
+            raise HTTPException(
+                status_code=400,
+                detail="Добавьте изображение или видео",
             )
 
-            file_type = (
-                "video"
-                if file_info["file_type"].startswith("video/")
-                else "image"
+        if len(media) > 10:
+            raise HTTPException(
+                status_code=400,
+                detail="Можно загрузить не более 10 файлов",
             )
 
-            await self.attachment_repo.create_data({
-                "post_id": post.id,
-                "file_path": file_info["file_path"],
-                "file_type": file_type,
-            })
+        image_files: list[UploadFile] = []
+        video_files: list[UploadFile] = []
 
-        return await self.post_repo.get_data_by_id(post.id)
+        for file in media:
+            content_type = file.content_type or ""
+
+            if content_type.startswith("image/"):
+                image_files.append(file)
+
+            elif content_type.startswith("video/"):
+                video_files.append(file)
+
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Файл «{file.filename}» имеет неподдерживаемый тип. "
+                        "Разрешены только изображения и видео"
+                    ),
+                )
+
+        if image_files and video_files:
+            raise HTTPException(
+                status_code=400,
+                detail="Нельзя добавлять изображения и видео в одну публикацию",
+            )
+
+        if video_files:
+            if len(video_files) != 1:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Рилс должен содержать только одно видео",
+                )
+
+            post_type = PostType.REEL
+
+        else:
+            post_type = PostType.POST
+
+        post = await self.post_repo.create_data({
+            "author_id": author.id,
+            "post_type": post_type,
+            "caption": caption.strip() if caption else None,
+            "location": location.strip() if location else None,
+            "visibility": visibility,
+            "comments_enabled": comments_enabled,
+        })
+
+        try:
+            for position, file in enumerate(media):
+                file_info = await self.upload_file(
+                    file=file,
+                    folder="posts",
+                    allowed_types=("image/", "video/"),
+                )
+
+                uploaded_type = file_info.get(
+                    "file_type",
+                    file.content_type or "",
+                )
+
+                media_type = (
+                    MediaType.VIDEO
+                    if uploaded_type.startswith("video/")
+                    else MediaType.IMAGE
+                )
+                print(media_type)
+                await self.post_media_repo.create_data({
+                    "post_id": post.id,
+                    "media_type": media_type,
+                    "file_url": file_info["file_path"],
+                    "thumbnail_url": file_info.get("thumbnail_url"),
+                    "width": file_info.get("width"),
+                    "height": file_info.get("height"),
+                    "duration": file_info.get("duration"),
+                    "position": position,
+                })
+
+        except Exception:
+            await self.post_repo.delete_data(post.id)
+            raise
+
+        created_post = await self.post_repo.get_data_by_id(post.id)
+
+        if not created_post:
+            raise HTTPException(
+                status_code=500,
+                detail="Не удалось получить созданную публикацию",
+            )
+
+        return created_post
 
     async def get_all(self, base_url: str) -> List[dict]:
         base_url = base_url.rstrip("/")
@@ -78,14 +162,6 @@ class PostService(BaseService):
                         "roles": post.author.roles,
                         "avatar": avatar_url,
                     },
-                    "attachments": [
-                        {
-                            "id": a.id,
-                            "post_id": a.post_id,
-                            "file_path": f"{base_url}{a.file_path}",
-                            "file_type": a.file_type,
-                        } for a in post.attachments
-                    ],
                     "comments_count": comments_count,
                     "likes_count": likes_count,
                     "favorites_count": favorites_count,
@@ -130,14 +206,6 @@ class PostService(BaseService):
                     "roles": post.author.roles,
                     "avatar": avatar_url,
                 },
-                "attachments": [
-                    {
-                        "id": a.id,
-                        "post_id": a.post_id,
-                        "file_path": f"{base_url}{a.file_path}",
-                        "file_type": a.file_type,
-                    } for a in post.attachments
-                ],
                 "comments": [
                     {
                         "id": c.id,

@@ -6,8 +6,7 @@ from dependencies.auth import get_auth_service, get_profile_update_data
 from dependencies.db import get_db
 from dependencies.otp import get_otp_repo, get_otp_service
 from dependencies.role import get_role_repo
-from dependencies.post import get_post_repo, get_post_service
-from dependencies.attachment import get_attachment_repo, get_attachment_service
+from dependencies.post import get_post_repo, get_post_service, get_post_media_repo
 from dependencies.comment import get_comment_repo, get_comment_service
 from dependencies.like import get_like_repo
 from dependencies.favorite import get_favorite_repo
@@ -37,9 +36,7 @@ __all__ = [
 
     "get_post_repo",
     "get_post_service",
-
-    "get_attachment_repo",
-    "get_attachment_service",
+    "get_post_media_repo",
 
     "get_comment_repo",
     "get_comment_service",

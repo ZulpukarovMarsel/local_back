@@ -15,8 +15,6 @@ from typing import List
 from models.base_model import Base
 
 
-# TODO: 0.1.2 - Добавить новые поля для поста: Done
-
 class PostType(enum.Enum):
     POST = "post"
     REEL = "reel"

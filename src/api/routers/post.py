@@ -1,11 +1,13 @@
-from typing import List, Optional
-from schemas.post import PostReadSchema
+from typing import List
+from schemas.post import CursorPageSchema, PostResponseSchema
 from fastapi import APIRouter, Depends, UploadFile, File, Form, Request, Security, HTTPException
+from sqlalchemy.orm import selectinload
 
 from core.security import bearer
 from services import PostService
-from repositories import PostRepository
-from dependencies import get_post_service, get_post_repo, get_current_user, get_current_user_raw
+from repositories import PostRepository, LikeRepository
+from dependencies import get_post_service, get_post_repo, get_current_user, get_like_repo
+from models import PostVisibility
 
 router = APIRouter(
     prefix="/posts",
@@ -16,24 +18,36 @@ router = APIRouter(
 )
 
 
-@router.get("/feed", response_model=List[PostReadSchema])
-async def get_posts(request: Request, post_service: PostService = Depends(get_post_service)):
+@router.get("", response_model=List[PostResponseSchema])
+async def test_get_posts(post_repo: PostRepository = Depends(get_post_repo)):
+    return await post_repo.get_all(selectinload(PostRepository.model.author), selectinload(PostRepository.model.media))
+
+
+@router.get("/feed", response_model=CursorPageSchema[PostResponseSchema])
+async def get_feed(request: Request, post_service: PostService = Depends(get_post_service)):
     base_url = str(request.base_url).rstrip("/")
-    return await post_service.get_all(base_url=base_url)
+    return await post_service.get_feed(base_url=base_url)
 
 
-@router.get("/{post_id}", response_model=PostReadSchema)
+@router.get("/{post_id}", response_model=PostResponseSchema)
 async def get_post(request: Request, post_id: int, post_service: PostService = Depends(get_post_service)):
     base_url = str(request.base_url).rstrip("/")
     return await post_service.get_post_by_id(post_id, base_url)
 
 
-@router.post("/", response_model=PostReadSchema)
+@router.post("", response_model=PostResponseSchema)
 async def create_post(
-    content: Optional[str] = Form(None), files: List[UploadFile] = File(default=[]),
-    post_service: PostService = Depends(get_post_service), author=Depends(get_current_user_raw)
+    caption: str | None = Form(None),
+    location: str | None = Form(None),
+    visibility: PostVisibility = Form(
+        PostVisibility.PUBLIC,
+    ),
+    comments_enabled: bool = Form(True),
+    media: list[UploadFile] = File(...),
+    post_service: PostService = Depends(get_post_service),
+    user=Depends(get_current_user)
 ):
-    return await post_service.create_post_with_attachments(author=author, content=content, files=files)
+    return await post_service.create_post(user, caption, location, visibility, comments_enabled, media)
 
 
 # TODO: 0.1.2 - Реализовать изменения поста
@@ -42,20 +56,28 @@ async def update_post(post_id: int):
     return None
 
 
-# TODO: 0.1.2 - Улучшить удаение
-@router.delete("/post_id")
+@router.delete("/{post_id}")
 async def delete_post(post_id: int, post_repo: PostRepository = Depends(get_post_repo)):
     post = await post_repo.get_data_by_id(post_id)
+
     if not post:
-        return HTTPException(status_code=404, detail="Пост не найден")
-    post_delete = await post_repo.delete_data(post_id)
-    return "Пост удален!"
+        raise HTTPException(
+            status_code=404,
+            detail="Пост не найден",
+        )
+
+    await post_repo.delete_data(post_id)
+
+    return {"detail": "Пост удален"}
 
 
 # TODO: 0.1.2 - Реализовать поставить лайк
 @router.put("/{post_id}/like")
-async def put_like(post_id: int):
-    return None
+async def put_like(post_id: int, like_repo: LikeRepository = Depends(get_like_repo), post_repo: PostRepository = Depends(get_post_repo), user=Depends(get_current_user)):
+    post = await post_repo.get_data_by_id(post_id)
+    if not post:
+        return HTTPException(status_code=404, detail="Пост не найден")
+    return like_repo.create_data({"author": user, "post": post})
 
 
 # TODO: 0.1.2 - Реализовать убрать лайк с поста
@@ -90,3 +112,8 @@ async def get_likes(post_id: int):
 # @router.delete("{post_id}/save")
 # async def delete_post_save(post_id: int):
     # return None
+
+# TODO: 0.1.6 - Реализовать  Вертикальная лента рилсов
+@router.get("reels/feed")
+async def get_reels():
+    return None

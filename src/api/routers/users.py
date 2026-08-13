@@ -1,8 +1,8 @@
 import logging
 from typing import List
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, Request
 
-from services import ChatService, UserService
+from services import ChatService
 
 from repositories import UserRepository, UserFollowRepository, PostRepository
 
@@ -10,7 +10,8 @@ from schemas.user import (
     UserReadSchema
 )
 from schemas.message import MessageBase
-from schemas.post import PostReadSchema
+from schemas.post import PostResponseSchema
+# from schemas.post import PostReadSchema
 
 from dependencies import get_user_repo, get_user_follow_repo, get_current_user, get_chat_service, get_post_repo, get_user_service
 
@@ -38,9 +39,9 @@ async def get_user(username: str, user_repo: UserRepository = Depends(get_user_r
     return await user_repo.get_by_username(username)
 
 
-@router.get("/{username}/posts", response_model=List[PostReadSchema])
-async def get_user_posts(username: str, post_repo: PostRepository = Depends(get_post_repo)):
-    return await post_repo.get_data_by_username(username)
+# @router.get("/{username}/posts", response_model=List[PostReadSchema])
+# async def get_user_posts(username: str, post_repo: PostRepository = Depends(get_post_repo)):
+#     return await post_repo.get_data_by_username(username)
 
 
 @router.get("/{username}/followers", response_model=None)
@@ -53,7 +54,7 @@ async def get_user_followings(username: str, user_follow_repo: UserFollowReposit
     return await user_follow_repo.get_user_followings(username)
 
 
-# TODO: Подумать и сделать логику рек людей для пользователя на главной странице
+# TODO: 0.1.7 -  Подумать и сделать логику рек людей для пользователя на главной странице
 @router.get("/suggestions", response_model=List[UserReadSchema])
 async def get_suggestions(user_repo: UserRepository = Depends(get_user_repo)):
     return await user_repo.get_all()
@@ -96,9 +97,71 @@ async def send_message_user(username: str, data: MessageBase, chat_service: Chat
     return await chat_service.create_private_chat(username, user.id, data)
 
 
-@router.get("/users/search", response_model=List[UserReadSchema])
+# TODO: 0.1.7 - Рилсы пользователя
+@router.get("/search", response_model=List[UserReadSchema])
 async def search_users(
     q: str = Query(..., description="Username для поиска"),
     user_repo: UserRepository = Depends(get_user_repo)
 ):
     return await user_repo.search_by_username(q)
+
+
+# TODO: 0.1.6 - Рилсы пользователя
+@router.get("/{username}/reels", response_model=List[PostResponseSchema])
+async def get_reels_user(username: str, request: Request, post_repo: PostRepository = Depends(get_post_repo)):
+    reels = await post_repo.get_reels_by_username(username)
+
+    base_url = str(request.base_url).rstrip("/")
+
+    result = []
+
+    for reel in reels:
+        reel_data = PostResponseSchema.model_validate(reel).model_dump()
+
+        if reel_data["author"]["avatar"]:
+            reel_data["author"]["avatar"] = (
+                f"{base_url}{reel_data['author']['avatar']}"
+            )
+
+        for media in reel_data["media"]:
+            if media["file_url"]:
+                media["file_url"] = f"{base_url}{media['file_url']}"
+
+            if media["thumbnail_url"]:
+                media["thumbnail_url"] = (
+                    f"{base_url}{media['thumbnail_url']}"
+                )
+
+        result.append(reel_data)
+
+    return result
+
+
+@router.get("/{username}/posts", response_model=List[PostResponseSchema])
+async def get_posts_user(username: str, request: Request, post_repo: PostRepository = Depends(get_post_repo)):
+    posts = await post_repo.get_posts_by_username(username)
+
+    base_url = str(request.base_url).rstrip("/")
+
+    result = []
+
+    for post in posts:
+        post_data = PostResponseSchema.model_validate(post).model_dump()
+
+        if post_data["author"]["avatar"]:
+            post_data["author"]["avatar"] = (
+                f"{base_url}{post_data['author']['avatar']}"
+            )
+
+        for media in post_data["media"]:
+            if media["file_url"]:
+                media["file_url"] = f"{base_url}{media['file_url']}"
+
+            if media["thumbnail_url"]:
+                media["thumbnail_url"] = (
+                    f"{base_url}{media['thumbnail_url']}"
+                )
+
+        result.append(post_data)
+
+    return result
