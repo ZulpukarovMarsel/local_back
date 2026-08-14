@@ -5,7 +5,7 @@ from dependencies import (
     get_chat_participant_repo, get_chat_service, get_message_repo,
     get_chat_participant_service
 )
-from schemas.chat import ChatCreateSchema, ChatParticipantBase
+from schemas.chat import ChatCreateSchema
 from schemas.message import MessageBase
 from services import ChatService, ChatParticipantService
 # from core.redis import redis_client
@@ -53,9 +53,9 @@ async def delete_message_chat(chat_id: int, message_id: int, message_repo: Messa
     return await message_repo.delete_data(message_id)
 
 
-@router.post("/{chat_id}/participants")
-async def added_participants_in_chat(chat_id: int, data: ChatParticipantBase, participant_service: ChatParticipantService = Depends(get_chat_participant_service), user=Depends(get_current_user)):
-    return await participant_service.added_participants_in_chat(data, chat_id, user.id)
+# @router.post("/{chat_id}/participants")
+# async def added_participants_in_chat(chat_id: int, data: ChatParticipantBase, participant_service: ChatParticipantService = Depends(get_chat_participant_service), user=Depends(get_current_user)):
+#     return await participant_service.added_participants_in_chat(data, chat_id, user.id)
 
 
 @router.delete("/{chat_id}/participants/{user_id}")

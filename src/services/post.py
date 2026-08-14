@@ -130,6 +130,9 @@ class PostService(BaseService):
 
         return created_post
 
+    async def update_post(self, post_id, post_data):
+        return await self.post_repo.update_data(post_id, post_data)
+
     async def get_all(self, base_url: str) -> List[dict]:
         base_url = base_url.rstrip("/")
         posts = await self.post_repo.get_all()

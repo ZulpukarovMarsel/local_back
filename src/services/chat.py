@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from repositories import ChatRepository, ChatParticipantRepository, ChatRoleRepository, UserRepository, MessageRepository
-from schemas.chat import ChatCreateSchema, ChatParticipantBase
+from schemas.chat import ChatCreateSchema
 from schemas.message import MessageBase
 
 
@@ -82,52 +82,52 @@ class ChatParticipantService:
     async def create_chat_participant(self, data: ChatCreateSchema, user_id: int):
         return None
 
-    async def added_participants_in_chat(
-        self,
-        chat_participant_data: ChatParticipantBase,
-        chat_id: int,
-        performer_id: int
-    ):
+    # async def added_participants_in_chat(
+    #     self,
+    #     chat_participant_data: ChatParticipantBase,
+    #     chat_id: int,
+    #     performer_id: int
+    # ):
 
-        chat_performer = await self.verify_user_in_chat(
-            chat_id,
-            performer_id
-        )
+    #     chat_performer = await self.verify_user_in_chat(
+    #         chat_id,
+    #         performer_id
+    #     )
 
-        if not chat_performer.chat_role.can_add_users:
-            raise HTTPException(status_code=403, detail="Нет разрешения на добавление пользователей")
+    #     if not chat_performer.chat_role.can_add_users:
+    #         raise HTTPException(status_code=403, detail="Нет разрешения на добавление пользователей")
 
-        performer = await self.user_repo.get_data_by_id(performer_id)
-        added_users = []
-        for user_id in chat_participant_data.user_ids:
+    #     performer = await self.user_repo.get_data_by_id(performer_id)
+    #     added_users = []
+    #     for user_id in chat_participant_data.user_ids:
 
-            existing = await self.chat_participant_repo.get_by_user_id_and_chat_id(
-                user_id,
-                chat_id
-            )
+    #         existing = await self.chat_participant_repo.get_by_user_id_and_chat_id(
+    #             user_id,
+    #             chat_id
+    #         )
 
-            if existing:
-                continue
+    #         if existing:
+    #             continue
 
-            data = {
-                "user_id": user_id,
-                "chat_id": chat_id
-            }
+    #         data = {
+    #             "user_id": user_id,
+    #             "chat_id": chat_id
+    #         }
 
-            await self.chat_participant_repo.create_data(data)
+    #         await self.chat_participant_repo.create_data(data)
 
-            user = await self.user_repo.get_data_by_id(user_id)
-            added_users.append(user.username)
-        if added_users:
-            users_string = ", ".join(added_users)
-            await self.message_repo.create_data({
-                "chat_id": chat_id,
-                "sender_id": performer_id,
-                "content": f"{performer.username} добавил {users_string}",
-                "message_type": "system"
-            })
+    #         user = await self.user_repo.get_data_by_id(user_id)
+    #         added_users.append(user.username)
+    #     if added_users:
+    #         users_string = ", ".join(added_users)
+    #         await self.message_repo.create_data({
+    #             "chat_id": chat_id,
+    #             "sender_id": performer_id,
+    #             "content": f"{performer.username} добавил {users_string}",
+    #             "message_type": "system"
+    #         })
 
-        return {"status": "Пользователи успешно добавлены!"}
+    #     return {"status": "Пользователи успешно добавлены!"}
 
     async def delete_participants_in_chat(self, chat_id: int, performer_id: int, user_id: int):
         chat_performer = await self.verify_user_in_chat(

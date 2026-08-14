@@ -69,12 +69,12 @@ class UserFollowRepository(BaseRepository):
         return result.scalar_one_or_none()
 
     async def get_user_followers(self, username: str):
-        stmt = select(self.model).where(self.model.follower.username == username)
+        stmt = select(self.model).where(self.model.follower.has(username=username))
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
     async def get_user_followings(self, username: str):
-        stmt = select(self.model).where(self.model.following.username == username)
+        stmt = select(self.model).where(self.model.following.has(username=username))
         result = await self.db.execute(stmt)
         return result.scalars().all()
 

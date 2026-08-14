@@ -9,6 +9,7 @@ from api.routers.favorite import router as favorite_router
 from api.routers.chat import router as chat_router
 from api.routers.chat_ws import router as chat_ws_router
 from api.routers.message import router as message_router
+from api.routers.search import router as search_router
 
 router = APIRouter(prefix="/api")
 router_list = [
@@ -20,7 +21,8 @@ router_list = [
     favorite_router,
     chat_router,
     chat_ws_router,
-    message_router
+    message_router,
+    search_router
 ]
 
 for r in router_list:

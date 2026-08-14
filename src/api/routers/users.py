@@ -6,8 +6,8 @@ from services import ChatService
 
 from repositories import UserRepository, UserFollowRepository, PostRepository
 
-from schemas.user import (
-    UserReadSchema
+from schemas.auth import (
+    AuthProfileSchema
 )
 from schemas.message import MessageBase
 from schemas.post import PostResponseSchema
@@ -27,14 +27,14 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[UserReadSchema], status_code=200)
+@router.get("/", response_model=List[AuthProfileSchema], status_code=200)
 async def get_users(
     user_repo: UserRepository = Depends(get_user_repo)
 ):
     return await user_repo.get_all()
 
 
-@router.get("/{username}", response_model=UserReadSchema)
+@router.get("/{username}", response_model=AuthProfileSchema)
 async def get_user(username: str, user_repo: UserRepository = Depends(get_user_repo)):
     return await user_repo.get_by_username(username)
 
@@ -55,7 +55,7 @@ async def get_user_followings(username: str, user_follow_repo: UserFollowReposit
 
 
 # TODO: 0.1.7 -  Подумать и сделать логику рек людей для пользователя на главной странице
-@router.get("/suggestions", response_model=List[UserReadSchema])
+@router.get("/suggestions", response_model=List[AuthProfileSchema])
 async def get_suggestions(user_repo: UserRepository = Depends(get_user_repo)):
     return await user_repo.get_all()
 
@@ -98,12 +98,6 @@ async def send_message_user(username: str, data: MessageBase, chat_service: Chat
 
 
 # TODO: 0.1.7 - Рилсы пользователя
-@router.get("/search", response_model=List[UserReadSchema])
-async def search_users(
-    q: str = Query(..., description="Username для поиска"),
-    user_repo: UserRepository = Depends(get_user_repo)
-):
-    return await user_repo.search_by_username(q)
 
 
 # TODO: 0.1.6 - Рилсы пользователя

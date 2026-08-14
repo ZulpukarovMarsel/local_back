@@ -3,9 +3,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from jose import JWTError
 
-from repositories import UserRepository
+from repositories import UserRepository, UserFollowRepository
 from schemas.auth import (
     AuthLoginSchema, AuthLoginResponseSchema,
     AuthProfileSchema, AuthProfileUpdateSchema,
@@ -17,7 +16,8 @@ from schemas.auth import (
 from services import UserService, AuthService, OTPService
 from dependencies import (
     get_user_repo, get_auth_service, get_user_service,
-    get_otp_service, get_profile_update_data, get_current_user
+    get_otp_service, get_profile_update_data, get_current_user,
+    get_user_follow_repo
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -100,7 +100,10 @@ async def logout(request: Request, response: Response):
 
 
 @router.get("/me", response_model=AuthProfileSchema)
-async def profile(request: Request, user=Depends(get_current_user)):
+async def profile(request: Request, user_follow_repo: UserFollowRepository = Depends(get_user_follow_repo), user=Depends(get_current_user)):
+    followers_count = await user_follow_repo.get_user_followers(user.username)
+    following_count = await user_follow_repo.get_user_followings(user.username)
+
     return JSONResponse(status_code=200, content=jsonable_encoder({
         "id": user.id,
         "avatar": f'{str(request.base_url).rstrip("/")}{user.avatar}' if user.avatar else 'none',
@@ -110,6 +113,8 @@ async def profile(request: Request, user=Depends(get_current_user)):
         "last_name": user.last_name,
         "bio": user.bio,
         "roles": user.roles,
+        "followers_count": len(followers_count),
+        "following_count": len(following_count),
         "created_at": user.created_at,
         "updated_at": user.updated_at
     }))

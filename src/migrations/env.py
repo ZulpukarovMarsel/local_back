@@ -8,7 +8,7 @@ from core.settings import settings
 from models import (
     Base, User, UserFollow, Role,
     OTP, Post, PostMedia,
-    Attachment, Like, Favorite,
+    Like, Favorite,
     Comment, LikeComment,
     Chat, ChatRole, ChatParticipant,
     Message

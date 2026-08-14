@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from repositories import CommentRepository
 from services import CommentService
 from dependencies import get_comment_repo, get_current_user, get_comment_service
-from schemas.comment import CommentCreateSchema, CommentReadSchema
+from schemas.comment import CommentCreateSchema
 
 router = APIRouter(
     prefix="/comments",

@@ -1,29 +1,51 @@
-from typing import List, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from datetime import datetime
 
+from pydantic import AliasChoices, BaseModel, Field
 
-class CommentBaseSchema(BaseModel):
-    post_id: int
-    parent_id: Optional[int] = None
-    text: str = Field(..., min_length=1)
+from schemas.common import ORMBaseSchema
+from schemas.user import UserShortResponseSchema
 
 
 class CommentCreateSchema(BaseModel):
-    parent_id: Optional[int] = None
-    text: str = Field(..., min_length=1)
+    content: str = Field(
+        min_length=1,
+        max_length=2000,
+    )
+
+    parent_id: int | None = None
 
 
 class CommentUpdateSchema(BaseModel):
-    text: Optional[str] = Field(None, min_length=1)
+    content: str = Field(
+        min_length=1,
+        max_length=2000,
+    )
 
 
-class CommentReadSchema(CommentBaseSchema):
+class CommentResponseSchema(ORMBaseSchema):
     id: int
+    post_id: int
     author_id: int
+    parent_id: int | None = None
 
-    replies: List["CommentReadSchema"] = []
+    content: str = Field(
+        validation_alias=AliasChoices("content", "text"),
+    )
 
-    model_config = ConfigDict(from_attributes=True)
+    author: UserShortResponseSchema
+
+    likes_count: int = 0
+    liked_by_me: bool = False
+
+    replies: list["CommentResponseSchema"] = Field(
+        default_factory=list,
+    )
+
+    created_at: datetime
+    updated_at: datetime
 
 
-CommentReadSchema.model_rebuild()
+class CommentLikeStateResponseSchema(ORMBaseSchema):
+    comment_id: int
+    liked_by_me: bool
+    likes_count: int = Field(ge=0)

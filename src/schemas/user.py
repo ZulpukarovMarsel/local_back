@@ -1,44 +1,43 @@
-from typing import List, Optional
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from datetime import datetime
+
+from pydantic import Field
+
+from schemas.common import ORMBaseSchema
 
 
-class UserBaseSchema(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50)
-    email: Optional[EmailStr] = None
-    avatar: Optional[str] = ""
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-
-
-class UserCreateSchema(UserBaseSchema):
-    password: str = Field(..., min_length=6)
-
-
-class UserUpdateSchema(BaseModel):
-    username: Optional[str] = Field(None, min_length=3, max_length=50)
-    email: Optional[EmailStr] = None
-    avatar: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    password: Optional[str] = Field(None, min_length=6)
-
-
-class UserReadSchema(UserBaseSchema):
+class UserShortResponseSchema(ORMBaseSchema):
     id: int
-    roles: List[str] = []
+    username: str
+    avatar: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
 
-    model_config = ConfigDict(from_attributes=True)
+
+class UserProfileResponseSchema(UserShortResponseSchema):
+    bio: str | None = None
+
+    posts_count: int = 0
+    followers_count: int = 0
+    following_count: int = 0
+
+    followed_by_me: bool = False
+
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
-class UserFollowerReadSchema(BaseModel):
+class FollowStateResponseSchema(ORMBaseSchema):
+    user_id: int
+    followed_by_me: bool
+    followers_count: int = Field(ge=0)
+
+
+class UserFollowResponseSchema(ORMBaseSchema):
+    id: int
     follower_id: int
-    follower: None
     following_id: int
-    following: UserBaseSchema
 
+    follower: UserShortResponseSchema
+    following: UserShortResponseSchema
 
-class UserFollowingReadSchema(BaseModel):
-    follower_id: int
-    follower: UserBaseSchema
-    following_id: int
-    following: None
+    created_at: datetime

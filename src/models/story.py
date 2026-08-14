@@ -42,3 +42,23 @@ from base_model import Base
 #     )
 #     expires_at:
 #     deleted_at:
+
+
+# class StoryView(Base):
+#     story_id: Mapped[int] = mapped_column(
+#         ForeignKey("stories.id"),
+#         nullable=False
+#     )
+#     story: Mapped["Story"] = relationship(
+#         "Story",
+#         back_populates="story_views"
+#     )
+#     user_id: Mapped[int] = mapped_column(
+#         ForeignKey("users.id"),
+#         nullable=False
+#     )
+#     user: Mapped["User"] = relationship(
+#         "User",
+#         back_populates="story_views"
+#   )
+#   view_at: create_at

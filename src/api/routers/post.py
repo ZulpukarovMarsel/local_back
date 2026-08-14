@@ -1,5 +1,5 @@
 from typing import List
-from schemas.post import CursorPageSchema, PostResponseSchema
+from schemas.post import CursorPageSchema, PostResponseSchema, PostUpdateSchema
 from fastapi import APIRouter, Depends, UploadFile, File, Form, Request, Security, HTTPException
 from sqlalchemy.orm import selectinload
 
@@ -52,8 +52,9 @@ async def create_post(
 
 # TODO: 0.1.2 - Реализовать изменения поста
 @router.patch("/{post_id}")
-async def update_post(post_id: int):
-    return None
+async def update_post(post_id: int, data: PostUpdateSchema, post_service: PostService = Depends(get_post_service)):
+    post_data = data.dict()
+    return await post_service.update_post(post_id, post_data)
 
 
 @router.delete("/{post_id}")
@@ -71,7 +72,6 @@ async def delete_post(post_id: int, post_repo: PostRepository = Depends(get_post
     return {"detail": "Пост удален"}
 
 
-# TODO: 0.1.2 - Реализовать поставить лайк
 @router.put("/{post_id}/like")
 async def put_like(post_id: int, like_repo: LikeRepository = Depends(get_like_repo), post_repo: PostRepository = Depends(get_post_repo), user=Depends(get_current_user)):
     post = await post_repo.get_data_by_id(post_id)
@@ -80,16 +80,17 @@ async def put_like(post_id: int, like_repo: LikeRepository = Depends(get_like_re
     return like_repo.create_data({"author": user, "post": post})
 
 
-# TODO: 0.1.2 - Реализовать убрать лайк с поста
 @router.delete("/{post_id}/like")
-async def delete_like(post_id: int):
-    return None
+async def delete_like(post_id: int, like_repo: LikeRepository = Depends(get_like_repo), user=Depends(get_current_user)):
+    like = await like_repo.get_like_by_post_author_id(post_id, user.id)
+    if not like:
+        return HTTPException(status_code=404, detail="Лайк не найден")
+    return await like_repo.delete_data(like.id)
 
 
-# TODO: 0.1.2 - Реализовать получить всех пользавателей которые поставили лайк
 @router.get("/{post_id}/likes")
-async def get_likes(post_id: int):
-    return None
+async def get_likes(post_id: int, like_repo: LikeRepository = Depends(get_like_repo)):
+    return await like_repo.get_users_by_like_post(post_id)
 
 
 # TODO: 0.1.3 - Реализовать получение комменты поста

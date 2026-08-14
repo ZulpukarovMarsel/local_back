@@ -11,11 +11,18 @@ class AuthProfileSchema(BaseModel):
     id: int
     username: str
     email: EmailStr
+
     avatar: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     bio: Optional[str] = None
+
     roles: List[RoleSchema] = Field(default_factory=list)
+
+    posts_count: Optional[int] = None
+    followers_count: Optional[int] = None
+    following_count: Optional[int] = None
+
     created_at: datetime
     updated_at: datetime
 
