@@ -1,12 +1,14 @@
 from typing import List
-from schemas.post import CursorPageSchema, PostResponseSchema, PostUpdateSchema
 from fastapi import APIRouter, Depends, UploadFile, File, Form, Request, Security, HTTPException
 from sqlalchemy.orm import selectinload
 
+from schemas.post import CursorPageSchema, PostResponseSchema, PostUpdateSchema
+from schemas.comment import CommentResponseSchema, CommentCreateSchema
+
 from core.security import bearer
-from services import PostService
-from repositories import PostRepository, LikeRepository
-from dependencies import get_post_service, get_post_repo, get_current_user, get_like_repo
+from services import PostService, CommentService
+from repositories import PostRepository, LikeRepository, CommentRepository
+from dependencies import get_post_service, get_post_repo, get_current_user, get_like_repo, get_comment_repo, get_comment_service
 from models import PostVisibility
 
 router = APIRouter(
@@ -76,7 +78,7 @@ async def delete_post(post_id: int, post_repo: PostRepository = Depends(get_post
 async def put_like(post_id: int, like_repo: LikeRepository = Depends(get_like_repo), post_repo: PostRepository = Depends(get_post_repo), user=Depends(get_current_user)):
     post = await post_repo.get_data_by_id(post_id)
     if not post:
-        return HTTPException(status_code=404, detail="Пост не найден")
+        raise HTTPException(status_code=404, detail="Пост не найден")
     return like_repo.create_data({"author": user, "post": post})
 
 
@@ -84,7 +86,7 @@ async def put_like(post_id: int, like_repo: LikeRepository = Depends(get_like_re
 async def delete_like(post_id: int, like_repo: LikeRepository = Depends(get_like_repo), user=Depends(get_current_user)):
     like = await like_repo.get_like_by_post_author_id(post_id, user.id)
     if not like:
-        return HTTPException(status_code=404, detail="Лайк не найден")
+        raise HTTPException(status_code=404, detail="Лайк не найден")
     return await like_repo.delete_data(like.id)
 
 
@@ -93,15 +95,14 @@ async def get_likes(post_id: int, like_repo: LikeRepository = Depends(get_like_r
     return await like_repo.get_users_by_like_post(post_id)
 
 
-# TODO: 0.1.3 - Реализовать получение комменты поста
-# @router.get("/{post_id}/comments", response_model=List[CommentReadSchema])
-# async def get_comments(post_id: int, comment_repo: CommentRepository = Depends(get_comment_repo)):
-    # return await comment_repo.get_comments_by_post(post_id)
+@router.get("/{post_id}/comments", response_model=List[CommentResponseSchema])
+async def get_comments(post_id: int, comment_repo: CommentRepository = Depends(get_comment_repo)):
+    return await comment_repo.get_comments_by_post(post_id)
 
-# TODO: 0.1.3 - Реализовать создание коммента для поста
-# @router.post("/{post_id}/comments", response_model=CommentReadSchema)
-# async def create_comment(post_id: int, data: CommentCreateSchema, comment_service: CommentService = Depends(get_comment_service), author=Depends(get_current_user)):
-#     return await comment_service.create_comment(post_id, data, author)
+
+@router.post("/{post_id}/comments", response_model=CommentResponseSchema)
+async def create_comment(post_id: int, data: CommentCreateSchema, comment_service: CommentService = Depends(get_comment_service), author=Depends(get_current_user)):
+    return await comment_service.create_comment(post_id, data, author)
 
 # TODO: 0.1.4 - Реализовать сохраненние посты
 # @router.put("/{post_id}/save")

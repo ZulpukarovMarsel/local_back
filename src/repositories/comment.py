@@ -3,7 +3,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from .base_repository import BaseRepository
-from models import Comment
+from models import Comment, LikeComment
 
 
 class CommentRepository(BaseRepository):
@@ -36,3 +36,17 @@ class CommentRepository(BaseRepository):
             stmt = stmt.where(self.model.id < cursor)
         result = await self.db.execute(stmt)
         return result.unique().scalars().all()
+
+
+class LikeCommentRepository(BaseRepository):
+    model = LikeComment
+
+    async def get_like_by_comment_author_id(self, comment_id: int, author_id: int):
+        stmt = select(
+            self.model
+            ).where(
+                self.model.comment_id == comment_id,
+                self.model.author_id == author_id
+            )
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()

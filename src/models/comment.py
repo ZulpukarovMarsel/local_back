@@ -44,10 +44,10 @@ class LikeComment(Base):
     __table_args__ = (
         UniqueConstraint("author_id", "comment_id", name="uix_author_comment"),
     )
-    comment_id: Mapped[int] = mapped_column(ForeignKey("comments.id"))
+    comment_id: Mapped[int] = mapped_column(ForeignKey("comments.id"), nullable=False, index=True)
     comment: Mapped["Comment"] = relationship("Comment", back_populates="like_comments")
-    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     author: Mapped["User"] = relationship("User", back_populates="like_comments")
 
     def __repr__(self):
-        return f"<Like comment(id={self.id}, author={self.author.username}, post={self.id})>"
+        return f"<LikeComment(id={self.id}, author_id={self.author_id}, comment_id={self.comment_id})>"
