@@ -1,7 +1,10 @@
 import json
+from fastapi import HTTPException
+from sqlalchemy.orm import selectinload
+
 from .base_service import BaseService
 from repositories import CommentRepository
-from schemas.comment import CommentCreateSchema
+from schemas.comment import CommentCreateSchema, CommentResponseSchema
 from core.redis import redis_client
 from models import User
 
@@ -19,6 +22,16 @@ class CommentService(BaseService):
         }
         await redis_client.delete(f"post:{post_id}")
         comment = await self.comment_repo.create_data(comment_data)
+
+        comment = await self.comment_repo.get_data_by_id(comment.id, selectinload(self.comment_repo.model.author))
+
+        if not comment:
+            raise HTTPException(
+                status_code=500,
+                detail="Не удалось получить созданный комментарий",
+            )
+
+        response = CommentResponseSchema.model_validate(comment)
         cache_key = f"comment:{comment.id}"
         await redis_client.set(
             cache_key,
@@ -32,7 +45,7 @@ class CommentService(BaseService):
             }),
             ex=300
         )
-        return comment
+        return response
 
     async def get_all(self, post_id: int):
         comments = await self.comment_repo.get_comments_by_post(post_id)

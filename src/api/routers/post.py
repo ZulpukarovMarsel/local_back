@@ -79,7 +79,7 @@ async def put_like(post_id: int, like_repo: LikeRepository = Depends(get_like_re
     post = await post_repo.get_data_by_id(post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Пост не найден")
-    return like_repo.create_data({"author": user, "post": post})
+    return await like_repo.create_data({"author_id": user.id, "post_id": post.id})
 
 
 @router.delete("/{post_id}/like")

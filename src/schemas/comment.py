@@ -7,7 +7,7 @@ from schemas.user import UserShortResponseSchema
 
 
 class CommentCreateSchema(BaseModel):
-    content: str = Field(
+    text: str = Field(
         min_length=1,
         max_length=2000,
     )
@@ -16,7 +16,7 @@ class CommentCreateSchema(BaseModel):
 
 
 class CommentUpdateSchema(BaseModel):
-    content: str = Field(
+    text: str = Field(
         min_length=1,
         max_length=2000,
     )
@@ -28,7 +28,7 @@ class CommentResponseSchema(ORMBaseSchema):
     author_id: int
     parent_id: int | None = None
 
-    content: str = Field(
+    text: str = Field(
         validation_alias=AliasChoices("content", "text"),
     )
 
