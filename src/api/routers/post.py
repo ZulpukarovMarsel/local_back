@@ -25,12 +25,6 @@ async def test_get_posts(post_repo: PostRepository = Depends(get_post_repo)):
     return await post_repo.get_all(selectinload(PostRepository.model.author), selectinload(PostRepository.model.media))
 
 
-@router.get("/feed", response_model=CursorPageSchema[PostResponseSchema])
-async def get_feed(request: Request, post_service: PostService = Depends(get_post_service)):
-    base_url = str(request.base_url).rstrip("/")
-    return await post_service.get_feed(base_url=base_url)
-
-
 @router.get("/{post_id}", response_model=PostResponseSchema)
 async def get_post(request: Request, post_id: int, post_service: PostService = Depends(get_post_service)):
     base_url = str(request.base_url).rstrip("/")

@@ -1,29 +1,64 @@
 import asyncio
 import json
-from core.redis import redis_client
-from typing import Optional, List
+from typing import List
 from fastapi import UploadFile, HTTPException
 from services.base_service import BaseService
+from core.redis import redis_client
 from repositories import (
     PostRepository, CommentRepository,
-    LikeRepository, FavoriteRepository, PostMediaRepository
+    LikeRepository, FavoriteRepository, PostMediaRepository,
+    UserRepository
 )
 from models import User, PostType, PostVisibility, MediaType
+from schemas.post import PostResponseSchema
 
 
 class PostService(BaseService):
     def __init__(
             self, post_repo: PostRepository, post_media_repo: PostMediaRepository, comment_repo: CommentRepository,
-            like_repo: LikeRepository, favorite_repo: FavoriteRepository
+            like_repo: LikeRepository, favorite_repo: FavoriteRepository, user_repo: UserRepository
     ):
         self.post_repo = post_repo
         self.post_media_repo = post_media_repo
         self.comment_repo = comment_repo
         self.like_repo = like_repo
         self.favorite_repo = favorite_repo
+        self.user_repo = user_repo
 
-    async def get_feed(self, base_url: str):
+    async def get_feed(self, username: str, base_url: str):
         return None
+
+    async def get_user_content(self, username: str, base_url: str, content_type: str):
+        posts = await self.post_repo.get_by_username_and_type(username, content_type)
+        user = await self.user_repo.get_by_username(username)
+
+        result = []
+
+        for post in posts:
+            post_data = PostResponseSchema.model_validate(post).model_dump()
+
+            post_data["liked_by_me"] = bool(await self.like_repo.get_like_by_post_author_id(post.id, user.id))
+            post_data["saved_by_me"] = bool(await self.favorite_repo.get_favorite_by_post_user_id(post.id, user.id))
+
+            if post_data["author"]["avatar"]:
+                post_data["author"]["avatar"] = (
+                    post.media.full_file_url(base_url)
+                )
+
+            for media in post_data["media"]:
+                if media["file_url"]:
+                    media["file_url"] = f"{base_url}{media['file_url']}"
+
+                if media["thumbnail_url"]:
+                    media["thumbnail_url"] = (
+                        f"{base_url}{media['thumbnail_url']}"
+                    )
+            post_data["likes_count"] = await self.like_repo.get_likes_count(post.id)
+            post_data["comments_count"] = await self.comment_repo.get_comments_count(post.id)
+
+            result.append(post_data)
+
+        return result
 
     async def create_post(self, author: User, caption: str, location: str, visibility: PostVisibility, comments_enabled: str, media: List[UploadFile]):
         if not media:

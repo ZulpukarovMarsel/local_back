@@ -1,11 +1,11 @@
 import logging
 from typing import List
-from fastapi import APIRouter, Depends, Query, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
-from services import ChatService
+from services import ChatService, PostService
 
-from repositories import UserRepository, UserFollowRepository, PostRepository
-
+from repositories import UserRepository, UserFollowRepository
+from models import PostType
 from schemas.auth import (
     AuthProfileSchema
 )
@@ -13,7 +13,7 @@ from schemas.message import MessageBase
 from schemas.post import PostResponseSchema
 # from schemas.post import PostReadSchema
 
-from dependencies import get_user_repo, get_user_follow_repo, get_current_user, get_chat_service, get_post_repo, get_user_service
+from dependencies import get_user_repo, get_user_follow_repo, get_current_user, get_chat_service, get_post_service
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -97,65 +97,11 @@ async def send_message_user(username: str, data: MessageBase, chat_service: Chat
     return await chat_service.create_private_chat(username, user.id, data)
 
 
-# TODO: 0.1.7 - Рилсы пользователя
-
-
-# TODO: 0.1.6 - Рилсы пользователя
 @router.get("/{username}/reels", response_model=List[PostResponseSchema])
-async def get_reels_user(username: str, request: Request, post_repo: PostRepository = Depends(get_post_repo)):
-    reels = await post_repo.get_reels_by_username(username)
-
-    base_url = str(request.base_url).rstrip("/")
-
-    result = []
-
-    for reel in reels:
-        reel_data = PostResponseSchema.model_validate(reel).model_dump()
-
-        if reel_data["author"]["avatar"]:
-            reel_data["author"]["avatar"] = (
-                f"{base_url}{reel_data['author']['avatar']}"
-            )
-
-        for media in reel_data["media"]:
-            if media["file_url"]:
-                media["file_url"] = f"{base_url}{media['file_url']}"
-
-            if media["thumbnail_url"]:
-                media["thumbnail_url"] = (
-                    f"{base_url}{media['thumbnail_url']}"
-                )
-
-        result.append(reel_data)
-
-    return result
+async def get_reels_user(username: str, request: Request, post_service: PostService = Depends(get_post_service)):
+    return await post_service.get_user_content(username=username, base_url=str(request.base_url).rstrip("/"), content_type=PostType.REEL)
 
 
 @router.get("/{username}/posts", response_model=List[PostResponseSchema])
-async def get_posts_user(username: str, request: Request, post_repo: PostRepository = Depends(get_post_repo)):
-    posts = await post_repo.get_posts_by_username(username)
-
-    base_url = str(request.base_url).rstrip("/")
-
-    result = []
-
-    for post in posts:
-        post_data = PostResponseSchema.model_validate(post).model_dump()
-
-        if post_data["author"]["avatar"]:
-            post_data["author"]["avatar"] = (
-                f"{base_url}{post_data['author']['avatar']}"
-            )
-
-        for media in post_data["media"]:
-            if media["file_url"]:
-                media["file_url"] = f"{base_url}{media['file_url']}"
-
-            if media["thumbnail_url"]:
-                media["thumbnail_url"] = (
-                    f"{base_url}{media['thumbnail_url']}"
-                )
-
-        result.append(post_data)
-
-    return result
+async def get_posts_user(username: str, request: Request, post_service: PostService = Depends(get_post_service)):
+    return await post_service.get_user_content(username=username, base_url=str(request.base_url).rstrip("/"), content_type=PostType.POST)

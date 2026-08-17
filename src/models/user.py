@@ -31,14 +31,21 @@ class User(Base):
 
     followers: Mapped[List["UserFollow"]] = relationship("UserFollow", foreign_keys="UserFollow.following_id", back_populates="following", cascade="all, delete-orphan")
     followings: Mapped[List["UserFollow"]] = relationship("UserFollow", foreign_keys="UserFollow.follower_id", back_populates="follower", cascade="all, delete-orphan")
-    saved_posts: Mapped[List["SavedPost"]] = relationship(
-            "SavedPost",
-            back_populates="user",
-            cascade="all, delete-orphan"
-        )
 
     def full_name(self):
         return f"{self.last_name} {self.first_name}"
+
+    def get_avatar_url(self, base_url: str) -> str | None:
+        if not self.avatar:
+            return None
+
+        if self.avatar.startswith(("http://", "https://")):
+            return self.avatar
+
+        return (
+            f"{base_url.rstrip('/')}/"
+            f"{self.avatar.lstrip('/')}"
+        )
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username})>"

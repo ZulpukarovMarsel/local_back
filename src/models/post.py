@@ -105,11 +105,6 @@ class Post(Base):
         back_populates="post",
         cascade="all, delete-orphan",
     )
-    saved_posts: Mapped[List["SavedPost"]] = relationship(
-        "SavedPost",
-        back_populates="post",
-        cascade="all, delete-orphan"
-    )
 
     def __repr__(self):
         return f"<Post(id={self.id}, author_id={self.author_id})>"
@@ -166,23 +161,14 @@ class PostMedia(Base):
         back_populates="media",
     )
 
+    def full_file_url(self, base_url: str) -> str | None:
+        if not self.file_url:
+            return None
 
-# TODO: 0.1.4 - Реализовать модел сохраненные посты
-class SavedPost(Base):
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"),
-        nullable=False,
-    )
-    user: Mapped["User"] = relationship(
-        "User",
-        back_populates="saved_posts"
-    )
+        if self.file_url.startswith(("http://", "https://")):
+            return self.file_url
 
-    post_id: Mapped[int] = mapped_column(
-        ForeignKey("posts.id"),
-        nullable=False,
-    )
-    post: Mapped["Post"] = relationship(
-        "Post",
-        back_populates="saved_posts"
-    )
+        return (
+            f"{base_url.rstrip('/')}/"
+            f"{self.file_url.lstrip('/')}"
+        )

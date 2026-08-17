@@ -10,6 +10,7 @@ from api.routers.chat import router as chat_router
 from api.routers.chat_ws import router as chat_ws_router
 from api.routers.message import router as message_router
 from api.routers.search import router as search_router
+from api.routers.feed import router as feed_router
 
 router = APIRouter(prefix="/api")
 router_list = [
@@ -22,7 +23,8 @@ router_list = [
     chat_router,
     chat_ws_router,
     message_router,
-    search_router
+    search_router,
+    feed_router
 ]
 
 for r in router_list:
